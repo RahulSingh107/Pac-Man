@@ -1,6 +1,9 @@
 //This javascript code is beginner friendly and Easy to read and understand
 const canvas = document.querySelector("canvas");
+// Selecting the entire 
 const c = canvas.getContext("2d");
+//this is a score element 
+const scoreEl = document.querySelector("#scoreEl");
 // inner width is a window object provided by the browser window
 canvas.width = innerWidth;
 canvas.height = innerHeight;
@@ -53,6 +56,48 @@ class Player {
     this.position.y += this.velocity.y;
   }
 }
+class Ghost {
+  constructor({ position, velocity,color='red' }) {
+    // setting the properties of the player
+    this.position = position;
+    this.velocity = velocity;
+    this.radius = 15;
+    this.color=color;
+  }
+
+  // drawing the pacman (blueprint )
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    //The startAngle and endAngle parameters define the start and end points of the arc in radians
+    c.fillStyle = this.color;
+    c.fill();
+    c.closePath();
+  }
+  update() {
+    this.draw();
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+  }
+}
+class pellet {
+  constructor({ position}) {
+    // setting the properties of the player
+    this.position = position;
+    this.radius = 3;
+  }
+
+  // drawing the pacman (blueprint )
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    //The startAngle and endAngle parameters define the start and end points of the arc in radians
+    c.fillStyle = "white";
+    c.fill();
+    c.closePath();
+  }
+  
+}
 
 //#endregion
 /*CLASS SECTION ENDS HERE
@@ -78,7 +123,19 @@ class Player {
 
 // Creating boundaries object array to store all the positions of the boundary DYNAMICALLY
 const boundaries = [];
-
+const pellets=[];
+const ghosts=[
+new Ghost({
+  position:{
+    x: Boundary.width*6 + Boundary.width / 2,
+    y: Boundary.height + Boundary.height / 2,
+},
+    velocity:{
+      x:0,
+      y:0
+    }
+})
+]
 const player = new Player({
   position: {
     x: Boundary.width + Boundary.width / 2,
@@ -104,208 +161,228 @@ const keys = {
   },
 };
 let lastKey = "";
+let score =0;
 
 // The given code uses the map variable, which is  an array of arrays (a 2D array), to iterate through its elements and create new Boundary objects when the symbol variable equals the string '-'. This is done using the forEach method, which is an array method that allows you to iterate through each element of an array.
 // creating a refrence map array with the nested array const map[[]]
 const map = [
-  ["1", "-", "-", "-", "-", "-", "-", "-", "-", "-", "2"],
-  ["|", ".", ".", ".", ".", ".", ".", ".", ".", ".", "|"],
-  ["|", ".", "b", ".", "[", "7", "]", ".", "b", ".", "|"],
-  ["|", ".", ".", ".", ".", "_", ".", ".", ".", ".", "|"],
-  ["|", ".", "[", "]", ".", ".", ".", "[", "]", ".", "|"],
-  ["|", ".", ".", ".", ".", "^", ".", ".", ".", ".", "|"],
-  ["|", ".", "b", ".", "[", "+", "]", ".", "b", ".", "|"],
-  ["|", ".", ".", ".", ".", "_", ".", ".", ".", ".", "|"],
-  ["|", ".", "[", "]", ".", ".", ".", "[", "]", ".", "|"],
-  ["|", ".", ".", ".", ".", "^", ".", ".", ".", ".", "|"],
-  ["|", ".", "b", ".", "[", "5", "]", ".", "b", ".", "|"],
-  ["|", ".", ".", ".", ".", ".", ".", ".", ".", "p", "|"],
-  ["4", "-", "-", "-", "-", "-", "-", "-", "-", "-", "3"],
-];
+  ['1', '-', '-', '-', '-', '-', '-', '-', '-', '-', '2'],
+  ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+  ['|', '.', 'b', '.', '[', '7', ']', '.', 'b', '.', '|'],
+  ['|', '.', '.', '.', '.', '_', '.', '.', '.', '.', '|'],
+  ['|', '.', '[', ']', '.', '.', '.', '[', ']', '.', '|'],
+  ['|', '.', '.', '.', '.', '^', '.', '.', '.', '.', '|'],
+  ['|', '.', 'b', '.', '[', '+', ']', '.', 'b', '.', '|'],
+  ['|', '.', '.', '.', '.', '_', '.', '.', '.', '.', '|'],
+  ['|', '.', '[', ']', '.', '.', '.', '[', ']', '.', '|'],
+  ['|', '.', '.', '.', '.', '^', '.', '.', '.', '.', '|'],
+  ['|', '.', 'b', '.', '[', '5', ']', '.', 'b', '.', '|'],
+  ['|', '.', '.', '.', '.', '.', '.', '.', '.', 'p', '|'],
+  ['4', '-', '-', '-', '-', '-', '-', '-', '-', '-', '3']
+]
 //here the '-' are representing the boxes and the ' '(space) is represnting the space in the map
 function createImage(src) {
   const image = new Image();
   image.src = src;
   return image;
 }
-// BASIC STRUCTURE OF A CALLBACK FUNCTION---> callback_fun(=>({ }))
 map.forEach((row, i) => {
-  //i is for index value for the current row
   row.forEach((symbol, j) => {
-    //j is the index for the symbol
     switch (symbol) {
-      case "-":
+      case '-':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeHorizontal.png"),
+            image: createImage('./img/pipeHorizontal.png')
           })
-        );
-        break;
-      case "|":
+        )
+        break
+      case '|':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeVertical.png"),
+            image: createImage('./img/pipeVertical.png')
           })
-        );
-        break;
-      case "1":
+        )
+        break
+      case '1':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeCorner1.png"),
+            image: createImage('./img/pipeCorner1.png')
           })
-        );
-        break;
-      case "2":
+        )
+        break
+      case '2':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeCorner2.png"),
+            image: createImage('./img/pipeCorner2.png')
           })
-        );
-        break;
-      case "3":
+        )
+        break
+      case '3':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeCorner3.png"),
+            image: createImage('./img/pipeCorner3.png')
           })
-        );
-        break;
-      case "4":
+        )
+        break
+      case '4':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/pipeCorner4.png"),
+            image: createImage('./img/pipeCorner4.png')
           })
-        );
-        break;
-      case "b":
+        )
+        break
+      case 'b':
         boundaries.push(
           new Boundary({
             position: {
-              x: Boundary.height * j,
-              y: Boundary.width * i,
+              x: Boundary.width * j,
+              y: Boundary.height * i
             },
-            image: createImage("./img/block.png"),
+            image: createImage('./img/block.png')
           })
-        );
-        break;
-      case "[":
-        boundaries.push(
-          new Boundary({
-            position: {
-              x: j * Boundary.width,
-              y: i * Boundary.height,
-            },
-            image: createImage("./img/capLeft.png"),
-          })
-        );
-        break;
-      case "]":
+        )
+        break
+      case '[':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            image: createImage("./img/capRight.png"),
+            image: createImage('./img/capLeft.png')
           })
-        );
-        break;
-      case "_":
+        )
+        break
+      case ']':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            image: createImage("./img/capBottom.png"),
+            image: createImage('./img/capRight.png')
           })
-        );
-        break;
-      case "^":
+        )
+        break
+      case '_':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            image: createImage("./img/capTop.png"),
+            image: createImage('./img/capBottom.png')
           })
-        );
-        break;
-
-      case "5":
+        )
+        break
+      case '^':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            color: "blue",
-            image: createImage("./img/pipeConnectorTop.png"),
+            image: createImage('./img/capTop.png')
           })
-        );
-        break;
-      case "6":
+        )
+        break
+      case '+':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            color: "blue",
-            image: createImage("./img/pipeConnectorRight.png"),
+            image: createImage('./img/pipeCross.png')
           })
-        );
-        break;
-      case "7":
+        )
+        break
+      case '5':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            color: "blue",
-            image: createImage("./img/pipeConnectorBottom.png"),
+            color: 'blue',
+            image: createImage('./img/pipeConnectorTop.png')
           })
-        );
-        break;
-      case "8":
+        )
+        break
+      case '6':
         boundaries.push(
           new Boundary({
             position: {
               x: j * Boundary.width,
-              y: i * Boundary.height,
+              y: i * Boundary.height
             },
-            image: createImage("./img/pipeConnectorLeft.png"),
+            color: 'blue',
+            image: createImage('./img/pipeConnectorRight.png')
           })
-        );
-        break;
+        )
+        break
+      case '7':
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: j * Boundary.width,
+              y: i * Boundary.height
+            },
+            color: 'blue',
+            image: createImage('./img/pipeConnectorBottom.png')
+          })
+        )
+        break
+      case '8':
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: j * Boundary.width,
+              y: i * Boundary.height
+            },
+            image: createImage('./img/pipeConnectorLeft.png')
+          })
+        )
+        break
+      case '.':
+        pellets.push(
+          new pellet({
+            position: {
+              x: j * Boundary.width+Boundary.width/2,
+              y: i * Boundary.height+Boundary.width/2
+            },
+            
+          })
+        )
+        break
+      
     }
-  });
-});
+  })
+})
 
 //traditional method would have taken 100 lines of code but we did it in 20
 //calling the draw function
@@ -415,6 +492,20 @@ function animate() {
       }
     }
   }
+  // touch pellets here
+  for(let i=pellets.length-1;i>0;i--)
+{
+  const pellet=pellets[i];
+    pellet.draw()
+    if(Math.hypot
+      (pellet.position.x - player.position.x, 
+      pellet.position.y - player.position.y) < pellet.radius + player.radius){
+      pellets.splice(i,1) //The splice function adds or removes elements from an array
+      score+=10;
+      scoreEl.innerHTML = score;
+      }
+    } 
+  
   boundaries.forEach((boundary) => {
     boundary.draw();
     // Adding the collision detection equation to the player(pac man) i.e.  the player won't go outside the map zone at any given point
@@ -431,9 +522,26 @@ function animate() {
   });
 
   // player(pacman)
-  player.update();
-  // player.velocity.y = 0;
-  // player.velocity.x = 0;
+    player.update();
+  
+    boundaries.forEach(boundary=>{
+      if(
+        circleCollideswithRectangle({
+          circle:{
+            ...player,
+            velocity:{
+              x:5,
+              y:0
+            }
+          },
+          rectangle:boundary
+        })
+      )
+      {
+        
+      }
+    })
+
 }
 animate();
 
